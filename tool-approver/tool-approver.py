@@ -6,15 +6,6 @@ Fires before Copilot's permission dialog and auto-approves/denies/asks based
 on configurable regex patterns. Falls through (outputs {}) for unmatched tools
 so normal prompting still works.
 
-Adapted from advanced-tool-approver.py (a Claude Code permissionRequest hook).
-
-Key differences from the Claude version:
-  - Hook event : permissionRequest (not PreToolUse)
-  - Output     : {"behavior": "allow"|"deny", "message": "..."} (not permissionDecision)
-  - Fail mode  : MUST output {} and exit 0 on error — permissionRequest command hooks
-                 are fail-CLOSED (non-zero exit = deny the tool call entirely).
-  - Canonicals : Copilot CLI permission pattern syntax — see _build_canonical() below.
-
 Canonical form (determines which regex shape to use in config patterns):
   write                        — file write/create/edit operations
   shell(<command>)             — shell command (PowerShell on Windows)
@@ -33,6 +24,14 @@ Evaluation order (first match wins):
   3. Config ask     — alwaysAskRegex (forces manual approval even if allow would match).
   4. Config allow   — allowRegex.
   5. Fall-through   — output {} and log to suggestions file.
+
+Output format:
+  {"behavior": "allow"}                        — auto-approved
+  {"behavior": "deny", "message": "..."}       — denied with reason
+  {}                                           — fall-through (Copilot prompts normally)
+
+Fail mode: MUST output {} and exit 0 on error — permissionRequest command hooks
+are fail-CLOSED (non-zero exit = deny the tool call entirely).
 
 Config files (merged at runtime; local appends to shared, never replaces):
   tool-approver-config.jsonc        shared patterns (edit to add new tools)
@@ -152,7 +151,7 @@ def _is_system_critical_path(path: str) -> bool:
 
 
 # ---------------------------------------------------------------------------
-# Built-in deny checks (adapted from advanced-tool-approver)
+# Built-in deny checks
 # ---------------------------------------------------------------------------
 
 BUILTIN_DENY_PATTERNS: list[tuple[re.Pattern, str]] = [

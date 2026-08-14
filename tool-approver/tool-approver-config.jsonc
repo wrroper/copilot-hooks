@@ -28,10 +28,18 @@
 
   "allowRegex": [
 
-    // --- File operations ---
+    // --- Built-in Copilot tools ---
     {
       "pattern": "^write$",
       "reason": "File write/create/edit tool — approved for all sessions."
+    },
+    {
+      "pattern": "^edit$",
+      "reason": "File edit tool — approved for all sessions."
+    },
+    {
+      "pattern": "^store_memory$",
+      "reason": "Memory store tool — approved for all sessions."
     },
 
     // --- ADO MCP server (Azure DevOps) ---
@@ -52,6 +60,18 @@
     {
       "pattern": "^sequentialthinking\\(",
       "reason": "Sequential thinking MCP — reasoning tool, no side effects."
+    },
+
+    // --- Time MCP ---
+    {
+      "pattern": "^time\\(",
+      "reason": "Time MCP — read-only time/timezone queries, no side effects."
+    },
+
+    // --- Playwright browser automation ---
+    {
+      "pattern": "^playwright\\(",
+      "reason": "Playwright MCP — browser automation for local dev testing."
     },
 
     // --- Brave web search ---
@@ -90,10 +110,11 @@
       "reason": "git show — read-only."
     },
 
-    // --- Log Analytics MCP ---
+    // --- Read-only git shell commands ---
+    // Covers both `git <cmd>` and `git --no-pager <cmd>` forms.
     {
-      "pattern": "^Log Analytics\\(",
-      "reason": "Log Analytics MCP — read-only telemetry queries."
+      "pattern": "^shell\\(git(?:\\s+--no-pager)?\\s+(status|log|show|diff|branch|remote)\\b",
+      "reason": "Read-only git inspection commands — no side effects."
     },
 
     // --- dotnet build/test/restore ---
@@ -144,6 +165,18 @@
     {
       "pattern": "^url\\(https://docs\\.github\\.com/",
       "reason": "GitHub documentation — read-only reference lookups."
+    },
+
+    // --- URL: Microsoft Learn / .NET docs ---
+    {
+      "pattern": "^url\\(https://learn\\.microsoft\\.com/",
+      "reason": "Microsoft Learn — official Microsoft and .NET documentation, read-only."
+    },
+
+    // --- URL: W3C ---
+    {
+      "pattern": "^url\\(https://www\\.w3\\.org/",
+      "reason": "W3C — web standards documentation, read-only."
     },
 
     // --- Chrome DevTools MCP ---
