@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "hooks": {
+    "permissionRequest": [
+      {
+        "type": "command",
+        "powershell": "$s = Join-Path $env:USERPROFILE '.copilot\\hooks\\tool-approver\\tool-approver.py'; if (Test-Path $s) { python $s } else { Write-Warning \"tool-approver: script not found at $s\" }",
+        "timeoutSec": 10
+      }
+    ]
+  }
+}

@@ -1,0 +1,7 @@
+# Log files — contain session history, do not share
+tool-approver/*.jsonl
+tool-approver/*.log
+
+# Local machine overrides — contain personal patterns, do not share
+# (the committed file is a blank template)
+# tool-approver/tool-approver-config.local.jsonc

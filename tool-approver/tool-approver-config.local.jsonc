@@ -1,0 +1,17 @@
+{
+  // tool-approver-config.local.jsonc — personal machine overrides.
+  //
+  // This file is appended to (not replacing) tool-approver-config.jsonc.
+  // Add patterns here that apply only to this machine and should NOT be shared.
+  //
+  // Example: allow dotnet run on this machine
+  // {
+  //   "allowRegex": [
+  //     { "pattern": "^shell\\(dotnet\\s+run\\b", "reason": "dotnet run — local dev server." }
+  //   ]
+  // }
+
+  "allowRegex": [],
+  "alwaysAskRegex": [],
+  "denyRegex": []
+}

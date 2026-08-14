@@ -1,0 +1,211 @@
+{
+  // tool-approver-config.jsonc — allow/deny/alwaysAsk patterns for the Copilot CLI
+  // permissionRequest hook.
+  //
+  // CANONICAL FORM: patterns match the tool's permission canonical string.
+  //
+  //   write                        — file write/create/edit tool
+  //   shell(<command>)             — shell command (PowerShell on Windows)
+  //   <serverName>(<toolName>)     — MCP tool (e.g. ado(wit_get_work_item))
+  //   url(<url>)                   — URL fetch / web access
+  //
+  // NOTE: The exact canonical format depends on what Copilot puts in the
+  // permissionRequest payload. After your first few sessions, review
+  // tool-approver-suggestions.jsonl — the "canonical" field shows the exact
+  // strings that fell through, and "raw_input" shows the full payload so you
+  // can adjust patterns if needed.
+  //
+  // ENTRY FORMAT:
+  //   { "pattern": "<regex>", "reason": "<why this is safe/unsafe>" }
+  //   Plain strings are accepted for backwards compatibility but new entries
+  //   must use the object form.
+  //
+  // DENY fires if the canonical matches ANY deny pattern.
+  // ALLOW / ALWAYSASK fires if the canonical matches ANY pattern in that list.
+  // ALWAYSASK wins over ALLOW (evaluated first).
+  //
+  // Use tool-approver-config.local.jsonc for personal machine overrides.
+
+  "allowRegex": [
+
+    // --- File operations ---
+    {
+      "pattern": "^write$",
+      "reason": "File write/create/edit tool — approved for all sessions."
+    },
+
+    // --- ADO MCP server (Azure DevOps) ---
+    // All ADO tools have been consistently approved; read and write are both allowed
+    // because ADO mutations are scoped to the DevOps org and require valid credentials.
+    {
+      "pattern": "^ado\\(",
+      "reason": "Azure DevOps MCP tool — consistently approved across all sessions."
+    },
+
+    // --- js-mcp (JavaScript build/test tooling) ---
+    {
+      "pattern": "^js-mcp\\(",
+      "reason": "JS MCP build/test/install tools — consistently approved."
+    },
+
+    // --- Sequential thinking ---
+    {
+      "pattern": "^sequentialthinking\\(",
+      "reason": "Sequential thinking MCP — reasoning tool, no side effects."
+    },
+
+    // --- Brave web search ---
+    {
+      "pattern": "^brave\\(",
+      "reason": "Brave search MCP — read-only web search."
+    },
+
+    // --- Context7 (library documentation) ---
+    {
+      "pattern": "^context7\\(",
+      "reason": "Context7 MCP — read-only library documentation lookup."
+    },
+
+    // --- Skills MCP ---
+    {
+      "pattern": "^skills\\(",
+      "reason": "Skills MCP — read-only skill definitions."
+    },
+
+    // --- Git MCP (read-only operations) ---
+    {
+      "pattern": "^mcp-server-git\\(git_status\\)$",
+      "reason": "git status — read-only."
+    },
+    {
+      "pattern": "^mcp-server-git\\(git_diff\\)$",
+      "reason": "git diff — read-only."
+    },
+    {
+      "pattern": "^mcp-server-git\\(git_log\\)$",
+      "reason": "git log — read-only."
+    },
+    {
+      "pattern": "^mcp-server-git\\(git_show\\)$",
+      "reason": "git show — read-only."
+    },
+
+    // --- Log Analytics MCP ---
+    {
+      "pattern": "^Log Analytics\\(",
+      "reason": "Log Analytics MCP — read-only telemetry queries."
+    },
+
+    // --- dotnet build/test/restore ---
+    // Shell commands use shell(<command>) canonical.
+    // Pattern covers: dotnet build, dotnet test, dotnet restore, dotnet sln, etc.
+    {
+      "pattern": "^shell\\(dotnet\\s+(build|test|restore|sln|list|format|run)\\b",
+      "reason": "dotnet CLI build/test/restore — standard development workflow."
+    },
+
+    // --- New-Item (directory/file creation) ---
+    {
+      "pattern": "^shell\\(New-Item\\b",
+      "reason": "New-Item — create directories and files."
+    },
+
+    // --- GitHub MCP server ---
+    {
+      "pattern": "^github-mcp-server\\(",
+      "reason": "GitHub MCP server — GitHub API access (search, repos, PRs, issues)."
+    },
+
+    // --- Azure CLI (az devops / az account) ---
+    // Used for work item attachments and account inspection.
+    {
+      "pattern": "^shell\\(az\\s+(devops|account)\\b",
+      "reason": "Azure CLI — DevOps and account read operations."
+    },
+    // Multi-command form: "az devops ...; az account show ..."
+    {
+      "pattern": "^shell\\(az\\s+devops\\b.*\\baz\\s+account\\b",
+      "reason": "Azure CLI — combined DevOps + account query."
+    },
+
+    // --- Read-only PowerShell introspection ---
+    {
+      "pattern": "^shell\\((?:Get-ChildItem|Test-Path|Get-Content|Select-String)\\b",
+      "reason": "Read-only PowerShell filesystem inspection — no side effects."
+    },
+
+    // --- URL: Azure DevOps REST API ---
+    {
+      "pattern": "^url\\(https://dev\\.azure\\.com/",
+      "reason": "Azure DevOps REST API — work items, attachments, and related reads."
+    },
+
+    // --- URL: GitHub Docs ---
+    {
+      "pattern": "^url\\(https://docs\\.github\\.com/",
+      "reason": "GitHub documentation — read-only reference lookups."
+    },
+
+    // --- Chrome DevTools MCP ---
+    {
+      "pattern": "^chrome-devtools\\(",
+      "reason": "Chrome DevTools MCP — browser automation for local dev testing."
+    },
+
+    // --- Copy-Item ---
+    {
+      "pattern": "^shell\\(Copy-Item\\b",
+      "reason": "Copy-Item — copy files into the workspace."
+    }
+  ],
+
+  "alwaysAskRegex": [
+    // Patterns that should always get manual approval even if an allowRegex
+    // would otherwise match. Evaluated before allowRegex; deny still wins.
+
+    // npm/npx via shell — prefer js-mcp MCP server for all JS build/test/install
+    // operations. Only approve manually as an absolute last resort.
+    {
+      "pattern": "^shell\\(npm\\s+",
+      "reason": "Use the js-mcp MCP server for npm operations instead of running npm directly via shell. Only approve manually if js-mcp is unavailable."
+    },
+    {
+      "pattern": "^shell\\(npx\\s+",
+      "reason": "Use the js-mcp MCP server for npx/vitest operations instead of running npx directly via shell. Only approve manually if js-mcp is unavailable."
+    },
+
+    // PowerShell Invoke-Expression executes arbitrary strings — always manual.
+    {
+      "pattern": "^shell\\(.*\\b(Invoke-Expression|iex)\\b",
+      "reason": "Invoke-Expression/iex executes arbitrary strings. Always requires manual approval. DO NOT bypass by reformulating the command."
+    },
+
+    // Remove-Item -Force on non-system paths: legitimate but risky.
+    {
+      "pattern": "^shell\\(.*\\b(Remove-Item|rm|ri|del|erase|rd)\\b.*\\s-Force\\b",
+      "reason": "Remove-Item -Force bypasses NTFS read-only attribute protection. Manual approval required. DO NOT add -Force as a conservative retry habit."
+    },
+
+    // git push — always manual to prevent accidental pushes.
+    {
+      "pattern": "^shell\\(git\\s+push\\b",
+      "reason": "git push requires manual approval. Verify the target branch and remote before approving."
+    }
+  ],
+
+  "denyRegex": [
+    // Hard denials that should never auto-approve regardless of other patterns.
+
+    // sqlcmd inline SQL (-Q/-q) — only pre-written .sql files with -i are allowed.
+    {
+      "pattern": "^shell\\(.*\\bsqlcmd\\b.*\\s-[Qq][\\s\"']",
+      "reason": "sqlcmd with -Q/-q executes inline SQL directly. Only pre-written .sql script files via -i are allowed. DO NOT retry with modified command structure."
+    },
+
+    // find with action flags — use Glob/Grep tools instead.
+    {
+      "pattern": "^shell\\(.*\\bfind\\b.*\\s-(?:exec|execdir|delete|ok|okdir)\\b",
+      "reason": "find with -exec/-execdir/-delete/-ok/-okdir executes commands or deletes files. Use the Glob or Grep tools instead. DO NOT retry with these flags."
+    }
+  ]
+}

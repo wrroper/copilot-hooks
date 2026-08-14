@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "hooks": {
+    "sessionStart": [
+      {
+        "type": "command",
+        "powershell": "$raw = [Console]::In.ReadToEnd(); try { $data = $raw | ConvertFrom-Json } catch { exit 0 }; $cwd = $data.cwd; if ($cwd -notmatch '^[A-Za-z]:\\\\Work\\\\Worktrees\\\\') { exit 0 }; $cfgPath = Join-Path $env:USERPROFILE '.copilot\\config.json'; try { $cfg = Get-Content $cfgPath -Raw | ConvertFrom-Json } catch { exit 0 }; if ($cwd -notin $cfg.trustedFolders) { $cfg.trustedFolders += $cwd; $cfg | ConvertTo-Json -Depth 10 -Compress | Set-Content $cfgPath -Encoding UTF8 }",
+        "_note": "Edit the regex pattern above to match your own worktree root path (e.g. C:\\\\Dev\\\\Worktrees\\\\).",
+        "timeoutSec": 5
+      }
+    ]
+  }
+}
